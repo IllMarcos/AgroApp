@@ -1,11 +1,7 @@
-/**
- * Learn more about Light and Dark modes:
- * https://docs.expo.io/guides/color-schemes/
- */
+// En: components/Themed.tsx
 
+import Colors from '@/constants/Colors'; // Corregido: importación por defecto
 import { Text as DefaultText, View as DefaultView } from 'react-native';
-
-import Colors from '@/constants/Colors';
 import { useColorScheme } from './useColorScheme';
 
 type ThemeProps = {
