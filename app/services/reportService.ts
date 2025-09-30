@@ -4,15 +4,12 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { child, DataSnapshot, get, getDatabase, onValue, push, query, ref, serverTimestamp, set } from "firebase/database";
 import { Alert } from "react-native";
-import { getPdfStyles } from './pdfStyles'; // Importamos los estilos desde el archivo separado
+import { getPdfStyles } from './pdfStyles';
 
 // --- CONFIGURACIÓN DE SERVICIOS EXTERNOS ---
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dculhg48d/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "AgroApp";
-
-// --- ALTERNATIVA: URL PÚBLICA PARA EL LOGO ---
-// 🚨 REEMPLAZA ESTA URL CON LA QUE COPIASTE DE IMGUR
-const logoUrl = 'https://res.cloudinary.com/dculhg48d/image/upload/v1759167807/logo-agro_h5qjj9.png'; // <- Ejemplo, ¡usa la tuya!
+const logoUrl = 'https://res.cloudinary.com/dculhg48d/image/upload/v1759167807/logo-agro_h5qjj9.png';
 
 // --- FUNCIONES DE LÓGICA DE DATOS ---
 
@@ -85,6 +82,37 @@ export function getAllReports(callback: (reports: any[]) => void) {
     }
   });
   return unsubscribe;
+}
+
+// --- NUEVAS FUNCIONES PARA PARCELAS ---
+export async function saveParcel(parcelData: { name: string; crop: string; coordinates: any[] }) {
+    try {
+        const payload = { ...parcelData, createdAt: serverTimestamp() };
+        const dbRef = ref(getDatabase(), 'parcelas');
+        const newParcelRef = push(dbRef);
+        await set(newParcelRef, payload);
+        return { id: newParcelRef.key };
+    } catch (err) {
+        console.error("Error guardando la parcela:", err);
+        throw err;
+    }
+}
+
+export function getAllParcels(callback: (parcels: any[]) => void) {
+    const dbRef = query(ref(getDatabase(), 'parcelas'));
+    const unsubscribe = onValue(dbRef, (snapshot: DataSnapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            const parcelList = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            }));
+            callback(parcelList);
+        } else {
+            callback([]);
+        }
+    });
+    return unsubscribe;
 }
 
 // --- FUNCIÓN DE PDF SIMPLIFICADA ---
